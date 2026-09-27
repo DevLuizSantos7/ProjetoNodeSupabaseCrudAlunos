@@ -1,0 +1,89 @@
+<!DOCTYPE html> <!-- avisa o navegador: "isto é HTML5" -->
+<html lang="pt-BR"> <!-- idioma da página (acessibilidade / SEO) -->
+
+<head> <!-- configurações: não aparecem como conteúdo -->
+    <meta charset="UTF-8" /> <!-- acentos (ç, ã) funcionam corretamente -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport = adapta a página ao celular -->
+    <title>Cadastro de Alunos</title> <!-- texto da aba do navegador -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- link = puxa o arquivo CSS (visual) -->
+</head>
+
+<body>
+    <div class="app"> <!-- class = nome para o CSS estilizar -->
+        <header class="topo">
+            <div>
+                <h1>Cadastro de Alunos</h1> <!-- titulo principal da página -->
+                <p class="subtitulo"></p>
+            </div>
+            <button type="button" id="btn-novo" class="btn btn-primario">
+                + Novo aluno
+            </button>
+        </header>
+
+        <div id="msg" class="msg" hidden></div>
+        <!-- área de aviso (sucesso/erro). Começa vazia e escondida. -->
+        <!-- hidden = atributo booleano: se estiver presente, o elemento não aparece -->
+
+        <section class="painel">
+            <div class="painel-cabecalho">
+                <h2>Alunos cadastrados</h2>
+                <button type="button" id="btn-atualizar" class="btn btn-secundario">
+                    Atualizar lista
+                </button>
+            </div>
+
+            <table>
+                <thead> <!-- cabeçalho fixo das colunas -->
+                    <tr> <!-- tr = table row = uma linha -->
+                        <th>Nome</th> <!-- th = título da coluna -->
+                        <th>RA</th>
+                        <th>Curso</th>
+                        <th class="acoes">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-alunos"> <!-- corpo: o JS preenche as linhas -->
+                    <tr>
+                        <td colspan="4" class="vazio">Carregando...</td>
+                        <!-- td = célula; colspan="4" = ocupa 4 colunas -->
+                    </tr>
+                </tbody>
+            </table>
+
+            <div id="modal" class="modal" hidden> <!-- começa escondido -->
+                <div class="modal-fundo" id="modal-fundo"></div>
+                <!-- fundo escuro; clique nele fecha o modal (no app.js) -->
+
+                <div class="modal-caixa" role="dialog" aria-modal="true">
+                    <!-- caixa branca com o formulário -->
+                    <!-- role/aria = dicas de acessibilidade (leitores de tela) -->
+                    <h2 id="modal-titulo">Novo aluno</h2>
+                    <form id="form-aluno"> <!-- agrupa os campos -->
+                        <label>
+                            Nome
+                            <input id="nome" type="text" required autocomplete="off" />
+                        </label>
+                        <label>
+                            RA
+                            <input id="ra" type="text" required autocomplete="off" />
+                        </label>
+                        <label>
+                            Curso
+                            <input id="curso" type="text" autocomplete="off" />
+                            <!-- curso SEM required = pode ficar em branco -->
+                        </label>
+
+                        <div class="modal-acoes">
+                            <button type="button" id="btn-cancelar" class="btn btn-secundario">Cancelar</button>
+                            <button type="submit" class="btn btn-primario">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>
