@@ -169,7 +169,7 @@ document.getElementById('btn-cancelar')
 document.getElementById('modal-fundo')
   .addEventListener('click', fecharModal);
 
-form.addEventListener('submit',     salvarAluno);
+form.addEventListener('submit',       salvarAluno);
 // evento submit (Salvar ou Enter) → chama salvarAluno(evento)
 
 listarAlunos();  // roda 1 vez ao carregar a página
