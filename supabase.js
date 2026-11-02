@@ -1,21 +1,16 @@
-// carrega SUPABASE_URL, SUPABASE_ANON_KEY e PORT para process.env
-// isso precisa vir antes de qualquer uso de process.env
+// Carrega as variáveis do arquivo .env antes de ler as credenciais do Supabase.
 require('dotenv').config();
-
 // importa a função que constrói o cliente HTTP do Supabase
 const { createClient } = require('@supabase/supabase-js');
-
 // lê as variáveis como texto simples (strings)
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-
 // validação defensiva: se o .env estiver incompleto,
 // é melhor travar aqui com uma mensagem clara do que
 // receber um erro confuso mais adiante
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error('Configure SUPABASE_URL e SUPABASE_ANON_KEY no .env');
 }
-
 // "supabase" é o objeto que sabe conversar com o seu projeto
 // por baixo dos panos ele usa HTTPS e envia a anon key no header
 // de cada requisição, para o Postgres saber quem está pedindo
@@ -28,21 +23,17 @@ async function inserirCurso(nome) {
     .insert([{ nome }])
     .select()
     .single();
-
   if (error) throw error;
   return data;   // { id, nome, criado_em }
 }
-
 // lista os cursos e conta quantos alunos cada um tem
 async function listarCursos() {
   const { data, error } = await supabase
     .from('cursos')
     .select('id, nome, alunos(count)')   // conta os alunos relacionados
     .order('nome', { ascending: true });
-
   if (error) throw error;
-
-    // o Supabase devolve: { id, nome, alunos: [{ count: 3 }] }
+  // o Supabase devolve: { id, nome, alunos: [{ count: 3 }] }
   // simplificamos para:   { id, nome, total_alunos: 3 }
   return data.map((curso) => ({
     id: curso.id,
@@ -50,13 +41,11 @@ async function listarCursos() {
     total_alunos: curso.alunos[0]?.count ?? 0,
   }));
 }
-
 // se o curso ainda tiver alunos, o banco recusa (on delete restrict)
 // e o erro vem com code '23503' (violação de chave estrangeira)
 async function excluirCurso(id) {
   const { data, error } = await supabase
     .from('cursos').delete().eq('id', id).select();
-
   if (error) throw error;
   return data;
 }
@@ -64,42 +53,39 @@ async function excluirCurso(id) {
 // colunas que pedimos sempre que lemos alunos (inclui o curso relacionado)
 // guardamos numa constante para não repetir o texto em todas as funções
 const COLUNAS_ALUNO = 'id, nome, ra, curso_id, criado_em, curso:cursos(id, nome)';
-
 // equivalente a: INSERT INTO alunos (nome, ra, curso_id) VALUES (...)
 async function inserirAluno(nome, ra, cursoId) {
   const { data, error } = await supabase
     .from('alunos')
     .insert([{ nome, ra, curso_id: cursoId }])   // grava o ID do curso
-    .select(COLUNAS_ALUNO)   // devolve a linha criada, já com o curso
+    .select(COLUNAS_ALUNO)    // devolve a linha criada, já com o curso
     .single();
-
   // error: RLS bloqueou, RA duplicado, curso inexistente...
   if (error) throw error;
   return data;
 }
-
-// todos os alunos, cada um com o seu curso
-async function listarAlunos() {
-  const { data, error } = await supabase
-    .from('alunos')
-        .select(COLUNAS_ALUNO)
-    .order('id', { ascending: true });
-
-  if (error) throw error;
-  return data;   // [ {...}, {...} ] ou []
+// Lista os alunos com seus cursos relacionados e aceita paginação opcional.
+async function listarAlunos(pagina, nome) {
+  return consultarAlunos({ pagina, nome });
 }
 
-// o 1:N na prática: dado UM curso, os N alunos dele
-// equivalente a: SELECT ... FROM alunos WHERE curso_id = ...
-async function listarAlunosDoCurso(cursoId) {
-  const { data, error } = await supabase
-    .from('alunos')
-    .select(COLUNAS_ALUNO)
-    .eq('curso_id', cursoId)   // filtra pela chave estrangeira
-    .order('nome', { ascending: true });
+// Lista os alunos de um curso e aceita paginação e busca por nome.
+async function listarAlunosDoCurso(cursoId, pagina, nome) {
+  return consultarAlunos({ cursoId, pagina, nome });
+}
 
+async function consultarAlunos({ cursoId, pagina, nome } = {}) {
+  let consulta = supabase.from('alunos')
+    .select(COLUNAS_ALUNO, pagina ? { count: 'exact' } : undefined);
+  if (cursoId) consulta = consulta.eq('curso_id', cursoId);
+  if (nome) consulta = consulta.ilike('nome', `%${nome}%`);
+  consulta = consulta.order(cursoId ? 'nome' : 'id', { ascending: true });
+  if (pagina) consulta = consulta.range(pagina.inicio, pagina.inicio + pagina.limite - 1);
+
+  const { data, error, count } = await consulta;
   if (error) throw error;
-  return data;
+  if (pagina) return { alunos: data || [], total: count ?? 0 };
+  return data || [];
 }
 
 // equivalente a: SELECT ... FROM alunos WHERE ra = '...'
@@ -107,23 +93,20 @@ async function buscarPorRa(ra) {
   const { data, error } = await supabase
     .from('alunos')
     .select(COLUNAS_ALUNO)
-    .eq('ra', ra)            // eq = "equals": filtra onde ra é igual ao valor recebido
-    .maybeSingle();          // aceita 0 ou 1 resultado, sem lançar erro se não achar nada
-                             // (.single() lançaria erro se não encontrasse nenhuma linha)
-
+    .eq('ra', ra)          // eq = "equals": filtra onde ra é igual ao valor recebido
+    .maybeSingle();         // aceita 0 ou 1 resultado, sem lançar erro se não achar nada
+  // (.single() lançaria erro se não encontrasse nenhuma linha)
   if (error) throw error;
   return data;   // objeto encontrado, ou null se o RA não existir
 }
-
 // equivalente a: SELECT ... FROM alunos WHERE nome ILIKE '%texto%'
 async function buscarPorNome(parteNome) {
   const { data, error } = await supabase
     .from('alunos')
     .select(COLUNAS_ALUNO)
     .ilike('nome', `%${parteNome}%`)   // ilike = sem diferenciar maiúsc./minúsc.
-                                       // os % são coringas: "contém" o texto
+    // os % são coringas: "contém" o texto
     .order('nome', { ascending: true });
-
   if (error) throw error;
   return data;
 }
@@ -131,32 +114,26 @@ async function buscarPorNome(parteNome) {
 // equivalente a: UPDATE alunos SET nome = '...', curso_id = ... WHERE ra = '...'
 async function atualizarAluno(ra, nome, cursoId) {
   const campos = {};
-  if (nome) campos.nome = nome;            // só manda o que veio preenchido
-  if (cursoId) campos.curso_id = cursoId;  // trocar de curso = trocar o número
-
+  if (nome) campos.nome = nome;             // só manda o que veio preenchido
+  if (cursoId) campos.curso_id = cursoId;   // trocar de curso = trocar o número
   if (!Object.keys(campos).length) {
     throw new Error('Informe nome e/ou curso para atualizar');
   }
-
   const { data, error } = await supabase
     .from('alunos')
     .update(campos)
     .eq('ra', ra)
     .select(COLUNAS_ALUNO);
-
   if (error) throw error;
   return data;
 }
-
 // equivalente a: DELETE FROM alunos WHERE ra = '...'
 async function excluirPorRa(ra) {
   const { data, error } = await supabase
     .from('alunos').delete().eq('ra', ra).select();
-
   if (error) throw error;
   return data;
 }
-
 module.exports = {
   supabase,
   inserirCurso, listarCursos, excluirCurso,
@@ -164,7 +141,7 @@ module.exports = {
   buscarPorRa, buscarPorNome, atualizarAluno, excluirPorRa,
 };
 
-//  CODIGO ANTIGO
+// Implementação anterior mantida como referência; o código abaixo não é executado.
 
 // // =================== CREATE ===================
 // // equivalente a: INSERT INTO alunos (nome, ra, curso) VALUES (....)

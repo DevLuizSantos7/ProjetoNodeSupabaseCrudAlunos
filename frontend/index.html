@@ -1,89 +1,135 @@
-<!DOCTYPE html> <!-- avisa o navegador: "isto é HTML5" -->
-<html lang="pt-BR"> <!-- idioma da página (acessibilidade / SEO) -->
+<!DOCTYPE html>
+<!-- Informa ao navegador que o documento usa HTML5. -->
+<html lang="pt-BR">
+<!-- Define o idioma principal da página para acessibilidade e mecanismos de busca. -->
 
-<head> <!-- configurações: não aparecem como conteúdo -->
-    <meta charset="UTF-8" /> <!-- acentos (ç, ã) funcionam corretamente -->
+<head>
+    <!-- Configurações do documento que não aparecem no conteúdo da página. -->
+    <meta charset="UTF-8" />
+    <!-- Permite a exibição correta de caracteres acentuados. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- viewport = adapta a página ao celular -->
-    <title>Cadastro de Alunos</title> <!-- texto da aba do navegador -->
+    <!-- Ajusta a largura da página ao tamanho da tela, inclusive em celulares. -->
+    <title>Cadastro de Alunos</title>
+    <!-- Carrega os estilos da página. -->
     <link rel="stylesheet" href="style.css" />
-    <!-- link = puxa o arquivo CSS (visual) -->
 </head>
 
 <body>
-    <div class="app"> <!-- class = nome para o CSS estilizar -->
+    <div class="app">
+        <!-- Contêiner principal da aplicação. -->
         <header class="topo">
             <div>
-                <h1>Cadastro de Alunos</h1> <!-- titulo principal da página -->
-                <p class="subtitulo"></p>
+                <h1>Cadastro de Alunos</h1>
+                <p class="subtitulo">Cursos e alunos: um curso tem vários alunos (1:N)</p>
             </div>
             <button type="button" id="btn-novo" class="btn btn-primario">
                 + Novo aluno
             </button>
         </header>
-
         <div id="msg" class="msg" hidden></div>
-        <!-- área de aviso (sucesso/erro). Começa vazia e escondida. -->
-        <!-- hidden = atributo booleano: se estiver presente, o elemento não aparece -->
-
+        <!-- Área de avisos de sucesso ou erro; começa vazia e escondida. -->
+        <section class="painel">
+            <div class="painel-cabecalho">
+                <h2>Cursos</h2>
+                <form id="form-curso" class="form-linha">
+                    <!-- Formulário para cadastrar um curso. -->
+                    <input id="novo-curso" type="text" placeholder="Nome do novo curso" required />
+                    <button type="submit" class="btn btn-primario">Adicionar curso</button>
+                </form>
+            </div>
+            <table class="tabela-cursos">
+                <colgroup>
+                    <col class="col-curso-nome" />
+                    <col class="col-curso-total" />
+                    <col class="col-curso-acoes" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Curso</th>
+                        <th>Alunos</th>
+                        <th class="acoes">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-cursos">
+                    <!-- O JavaScript preenche este corpo da tabela com os cursos. -->
+                    <tr>
+                        <td colspan="3" class="vazio">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
         <section class="painel">
             <div class="painel-cabecalho">
                 <h2>Alunos cadastrados</h2>
-                <button type="button" id="btn-atualizar" class="btn btn-secundario">
-                    Atualizar lista
-                </button>
+                <form id="form-busca" class="filtros">
+                    <input id="busca-aluno" type="search" placeholder="Buscar por nome" />
+                    <select id="filtro-curso">
+                        <!-- As opções de filtro são carregadas pelo JavaScript. -->
+                        <option value="">Todos os cursos</option>
+                        <!-- O valor vazio indica que nenhum curso está sendo filtrado. -->
+                    </select>
+                    <button type="submit" class="btn btn-secundario">Buscar</button>
+                    <button type="button" id="btn-atualizar" class="btn btn-secundario">Atualizar lista</button>
+                </form>
             </div>
-
-            <table>
-                <thead> <!-- cabeçalho fixo das colunas -->
-                    <tr> <!-- tr = table row = uma linha -->
-                        <th>Nome</th> <!-- th = título da coluna -->
+            <table class="tabela-alunos">
+                <colgroup>
+                    <col class="col-aluno-nome" />
+                    <col class="col-aluno-ra" />
+                    <col class="col-aluno-curso" />
+                    <col class="col-aluno-acoes" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
                         <th>RA</th>
                         <th>Curso</th>
                         <th class="acoes">Ações</th>
                     </tr>
                 </thead>
-                <tbody id="tabela-alunos"> <!-- corpo: o JS preenche as linhas -->
+                <tbody id="tabela-alunos">
                     <tr>
                         <td colspan="4" class="vazio">Carregando...</td>
-                        <!-- td = célula; colspan="4" = ocupa 4 colunas -->
                     </tr>
                 </tbody>
             </table>
-
-            <div id="modal" class="modal" hidden> <!-- começa escondido -->
-                <div class="modal-fundo" id="modal-fundo"></div>
-                <!-- fundo escuro; clique nele fecha o modal (no app.js) -->
-
-                <div class="modal-caixa" role="dialog" aria-modal="true">
-                    <!-- caixa branca com o formulário -->
-                    <!-- role/aria = dicas de acessibilidade (leitores de tela) -->
-                    <h2 id="modal-titulo">Novo aluno</h2>
-                    <form id="form-aluno"> <!-- agrupa os campos -->
-                        <label>
-                            Nome
-                            <input id="nome" type="text" required autocomplete="off" />
-                        </label>
-                        <label>
-                            RA
-                            <input id="ra" type="text" required autocomplete="off" />
-                        </label>
-                        <label>
-                            Curso
-                            <input id="curso" type="text" autocomplete="off" />
-                            <!-- curso SEM required = pode ficar em branco -->
-                        </label>
-
-                        <div class="modal-acoes">
-                            <button type="button" id="btn-cancelar" class="btn btn-secundario">Cancelar</button>
-                            <button type="submit" class="btn btn-primario">Salvar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <div id="sentinela-alunos" class="sentinela-alunos" aria-hidden="true"></div>
         </section>
+
+        <div id="modal" class="modal" hidden>
+            <!-- O modal fica oculto até o usuário abrir o formulário. -->
+            <div class="modal-fundo" id="modal-fundo"></div>
+            <!-- Fundo escuro; clicar nele fecha o modal conforme configurado em app.js. -->
+            <div class="modal-caixa" role="dialog" aria-modal="true">
+                <!-- Caixa do diálogo que contém o formulário. -->
+                <!-- role e aria-modal identificam o diálogo para tecnologias assistivas. -->
+                <h2 id="modal-titulo">Novo aluno</h2>
+                <form id="form-aluno">
+                    <!-- Formulário usado para cadastrar ou editar um aluno. -->
+                    <label>
+                        Nome
+                        <input id="nome" type="text" required autocomplete="off" />
+                    </label>
+                    <label>
+                        RA
+                        <input id="ra" type="text" required autocomplete="off" />
+                    </label>
+                    <label>
+                        Curso
+                        <select id="curso" required>
+                            <option value="">Selecione um curso</option>
+                        </select>
+                    </label>
+                    <div class="modal-acoes">
+                        <button type="button" id="btn-cancelar" class="btn btn-secundario">Cancelar</button>
+                        <button type="submit" class="btn btn-primario">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <script src="app.js"></script>
+    <!-- Carrega o JavaScript da interface após os elementos da página. -->
 </body>
 
 </html>

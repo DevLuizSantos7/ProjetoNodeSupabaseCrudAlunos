@@ -1,70 +1,111 @@
 :root {
-  --bg: #f0f3f6;          /* fundo geral */
-  --surface: #ffffff;     /* cartões / painéis */
-  --ink: #1a2332;         /* texto principal */
-  --muted: #5c6b7a;       /* texto secundário */
-  --line: #d8e0e8;        /* bordas */
-  --primary: #0f6e56;     /* verde dos botões principais */
-  --danger: #b42318;      /* vermelho de excluir / erro */
-  --ok-soft: #ecfdf3;     /* fundo suave de sucesso */
+  --bg: #f0f3f6;
+  /* Cor de fundo principal da página. */
+  --surface: #ffffff;
+  /* Fundo dos painéis e cartões. */
+  --ink: #1a2332;
+  /* Cor do texto principal. */
+  --muted: #5c6b7a;
+  /* Cor do texto secundário. */
+  --line: #d8e0e8;
+  /* Cor das bordas. */
+  --primary: #0f6e56;
+  /* Cor dos botões principais. */
+  --danger: #b42318;
+  /* Cor de ações destrutivas e mensagens de erro. */
+  --ok-soft: #ecfdf3;
+  /* Fundo das mensagens de sucesso. */
 }
 
 * {
-  box-sizing: border-box;   /* padding entra dentro da largura */
+  box-sizing: border-box;
+  /* Inclui padding e bordas no cálculo da largura dos elementos. */
 }
 
 body {
-  margin: 0;                /* tira a margem branca padrão */
-  min-height: 100vh;        /* altura mínima = tela inteira */
+  margin: 0;
+  /* Remove a margem padrão do navegador. */
+  min-height: 100vh;
+  /* Garante que o corpo ocupe pelo menos a altura da janela. */
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--ink);        /* usa a variável --ink */
+  color: var(--ink);
+  /* Aplica a cor principal do texto. */
   background: linear-gradient(180deg, #e7eef4 0%, var(--bg) 40%);
 }
 
 .app {
-  width: min(900px, calc(100% - 2rem)); /* no máx. 900px */
-  margin: 0 auto;           /* centraliza na horizontal */
+  width: min(900px, calc(100% - 2rem));
+  /* Limita a largura e mantém margens laterais em telas menores. */
+  margin: 0 auto;
+  /* Centraliza o contêiner horizontalmente. */
   padding: 2rem 0 3rem;
 }
 
 .topo {
-  display: flex;                  /* ativa o flexbox */
-  justify-content: space-between; /* título à esquerda, botão à direita */
-  align-items: flex-start;        /* alinha no topo */
-  gap: 1rem;                      /* espaço entre os filhos */
+  display: flex;
+  /* Organiza os elementos do cabeçalho com Flexbox. */
+  justify-content: space-between;
+  /* Separa o título e o botão nas extremidades do cabeçalho. */
+  align-items: flex-start;
+  /* Alinha os elementos pelo topo. */
+  gap: 1rem;
+  /* Define o espaço entre os elementos do cabeçalho. */
 }
 
 .painel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;         /* cantos arredondados */
+  border-radius: 12px;
+  /* Arredonda os cantos do painel. */
   overflow: hidden;
   box-shadow: 0 8px 24px -18px rgba(26, 35, 50, 0.45);
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
   table-layout: fixed;
+  border-collapse: collapse;
 }
 
-thead th {
-  background: #f8fafb;
-  text-align: left;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-th, td {
+th,
+td {
   padding: 0.85rem 1.15rem;
   border-bottom: 1px solid var(--line);
-  vertical-align: middle;
   text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 
-th:last-child,
+.tabela-cursos .col-curso-nome {
+  width: 42%;
+}
+
+.tabela-cursos .col-curso-total {
+  width: 20%;
+}
+
+.tabela-cursos .col-curso-acoes {
+  width: 38%;
+}
+
+.tabela-alunos .col-aluno-nome {
+  width: 32%;
+}
+
+.tabela-alunos .col-aluno-ra {
+  width: 18%;
+}
+
+.tabela-alunos .col-aluno-curso {
+  width: 25%;
+}
+
+.tabela-alunos .col-aluno-acoes {
+  width: 25%;
+}
+
+th.acoes,
 td:last-child {
-  width: 180px;
   text-align: center;
 }
 
@@ -73,7 +114,8 @@ tbody td {
 }
 
 tbody tr:hover td {
-  background: #f8fbfc;         /* destaque ao passar o mouse */
+  background: #f8fbfc;
+  /* Destaca a linha quando o ponteiro passa sobre ela. */
 }
 
 .painel-cabecalho {
@@ -91,15 +133,17 @@ tbody tr:hover td {
   font-size: 1.2rem;
 }
 
-.btn {                         /* base comum a todos os botões */
+.btn {
+  /* Estilos compartilhados por todos os botões. */
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0.55rem 0.9rem;
-  cursor: pointer;             /* mãozinha ao passar o mouse */
-  font: inherit;
+  cursor: pointer;
+  /* Indica que o botão pode ser clicado. */
 }
 
-.btn-primario {                /* + Novo aluno, Salvar */
+.btn-primario {
+  /* Estilo dos botões de ação principal. */
   background: var(--primary);
   color: #fff;
 }
@@ -135,58 +179,222 @@ tbody tr:hover td {
   font-weight: 600;
 }
 
-.msg.ok {                      /* class="msg ok" no JS */
+.msg.ok {
+  /* Estilo das mensagens de sucesso. */
   background: var(--ok-soft);
   color: #067647;
 }
 
-.msg.erro {                    /* class="msg erro" */
+.msg.erro {
+  /* Estilo das mensagens de erro. */
   background: var(--danger-soft);
   color: var(--danger);
 }
 
 .msg[hidden] {
-  display: none !important;    /* some de verdade da tela */
+  display: none !important;
+  /* Mantém ocultas as mensagens marcadas como hidden. */
 }
 
 .modal {
-  position: fixed;         /* fixo na tela, mesmo com scroll */
-  inset: 0;                /* top/right/bottom/left = 0 → cobre tudo */
-  z-index: 40;             /* fica por cima do resto */
+  position: fixed;
+  /* Mantém o modal fixo em relação à janela. */
+  inset: 0;
+  /* Estende o modal até as quatro bordas da janela. */
+  z-index: 40;
+  /* Exibe o modal acima do conteúdo da página. */
   display: grid;
-  place-items: center;     /* centraliza a caixa */
+  place-items: center;
+  /* Centraliza o conteúdo do modal. */
 }
 
 .modal-fundo {
   position: absolute;
   inset: 0;
-  background: rgba(18, 28, 40, 0.45); /* escurece o fundo */
+  background: rgba(18, 28, 40, 0.45);
+  /* Escurece o conteúdo atrás do modal. */
 }
 
 .modal-caixa {
-  position: relative;      /* acima do fundo */
+  position: relative;
+  /* Mantém a caixa do modal acima do fundo escurecido. */
   width: min(420px, 100%);
   background: var(--surface);
   border-radius: 12px;
   padding: 1.25rem;
 }
 
-.modal[hidden] { display: none !important; }
+.modal[hidden] {
+  display: none !important;
+}
 
-form { display: grid; gap: 0.85rem; }
-label { display: grid; gap: 0.35rem; font-weight: 600; }
+form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
 input {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0.65rem 0.75rem;
 }
-input:focus { border-color: var(--primary); }
-input:disabled { background: #f3f5f7; }  /* RA na edição */
 
-@media (max-width: 640px) {              /* telas estreitas */
-  .topo, .painel-cabecalho {
-    flex-direction: column;              /* empilha em vez de lado a lado */
+input:focus {
+  border-color: var(--primary);
+}
+
+input:disabled {
+  background: #f3f5f7;
+}
+
+.painel+.painel {
+  /* Adiciona espaçamento entre painéis consecutivos. */
+  margin-top: 1.25rem;
+  /* Separa os painéis de cursos e alunos. */
+}
+
+.form-linha,
+.filtros {
+  display: flex;
+  /* Alinha os campos e controles em uma linha. */
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-linha input {
+  width: 220px;
+}
+
+.filtros select {
+  width: auto;
+}
+
+input,
+select {
+  /* Aplica aos seletores o mesmo estilo dos campos de texto. */
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+}
+
+.btn {
+  min-height: 42px;
+  font: inherit;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.form-linha {
+  width: min(100%, 28rem);
+}
+
+.form-linha input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  width: auto;
+}
+
+.filtros {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.filtros input[type="search"] {
+  flex: 1 1 12rem;
+  min-width: 0;
+  width: auto;
+}
+
+.filtros select {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 0.4rem;
+}
+
+.modal-acoes .btn {
+  min-width: 7rem;
+}
+
+.sentinela-alunos {
+  height: 1px;
+}
+
+/* Estilo do campo de RA quando está desabilitado durante a edição. */
+
+@media (max-width: 640px) {
+
+  /* Ajustes de layout para telas estreitas. */
+  .topo,
+  .painel-cabecalho {
+    flex-direction: column;
+    /* Organiza o cabeçalho em coluna em telas menores. */
     align-items: stretch;
+  }
+
+  .form-linha,
+  .filtros {
+    width: 100%;
+  }
+
+  .filtros input[type="search"],
+  .filtros select {
+    flex-basis: 100%;
+  }
+
+  .filtros .btn {
+    flex: 1 1 auto;
+  }
+
+  .modal-acoes .btn {
+    flex: 1;
+  }
+
+  th,
+  td {
+    padding: 0.65rem 0.45rem;
+  }
+
+  .tabela-alunos .col-aluno-nome {
+    width: 28%;
+  }
+
+  .tabela-alunos .col-aluno-ra {
+    width: 18%;
+  }
+
+  .tabela-alunos .col-aluno-curso {
+    width: 24%;
+  }
+
+  .tabela-alunos .col-aluno-acoes {
+    width: 30%;
+  }
+
+  .tabela-acoes {
+    flex-direction: column;
+  }
+
+  .tabela-acoes .btn {
+    width: 100%;
+    padding: 0.35rem 0.25rem;
+    white-space: normal;
   }
 }
