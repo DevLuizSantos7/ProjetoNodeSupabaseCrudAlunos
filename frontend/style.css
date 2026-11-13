@@ -128,6 +128,30 @@ tbody tr:hover td {
   background: #f8fafb;
 }
 
+.painel-cabecalho.alunos-cabecalho {
+  display: block;
+}
+
+.alunos-cabecalho-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.alunos-cabecalho-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.alunos-cabecalho-acoes select {
+  flex: 0 1 16rem;
+  min-width: 0;
+  width: auto;
+}
+
 .painel-cabecalho h2 {
   margin: 0;
   font-size: 1.2rem;
@@ -304,10 +328,29 @@ select {
 }
 
 .filtros {
-  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.criterio-pesquisa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.criterio-pesquisa[hidden] {
+  display: none;
+}
+
+.busca-linha {
+  display: flex;
+  flex: 1 0 100%;
+  min-width: 0;
   gap: 0.65rem;
 }
 
@@ -337,16 +380,50 @@ select {
   height: 1px;
 }
 
+.rolagem-status {
+  margin: 0;
+  padding: 0.75rem 1.15rem 0.9rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+  background: #fafcfd;
+}
+
+.nuvem-filtro {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+  border-radius: 999px;
+  /* cantos bem redondos = “nuvem” */
+  background: #e7f6ee;
+  color: var(--primary);
+}
+
+.nuvem-filtro-limpar {
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  /* botão × dentro da nuvem */
+}
+
 /* Estilo do campo de RA quando está desabilitado durante a edição. */
 
 @media (max-width: 640px) {
 
   /* Ajustes de layout para telas estreitas. */
   .topo,
-  .painel-cabecalho {
+  .painel-cabecalho:not(.alunos-cabecalho) {
     flex-direction: column;
     /* Organiza o cabeçalho em coluna em telas menores. */
     align-items: stretch;
+  }
+
+  .alunos-cabecalho-topo {
+    gap: 0.5rem;
+  }
+
+  .alunos-cabecalho-topo h2 {
+    font-size: 1rem;
   }
 
   .form-linha,
@@ -354,13 +431,20 @@ select {
     width: 100%;
   }
 
-  .filtros input[type="search"],
-  .filtros select {
-    flex-basis: 100%;
+  .alunos-cabecalho-acoes {
+    flex: 1 1 auto;
   }
 
-  .filtros .btn {
+  .alunos-cabecalho-acoes select {
     flex: 1 1 auto;
+  }
+
+  .busca-linha input[type="search"] {
+    flex: 1 1 0;
+  }
+
+  .busca-linha .btn {
+    flex: 0 0 auto;
   }
 
   .modal-acoes .btn {

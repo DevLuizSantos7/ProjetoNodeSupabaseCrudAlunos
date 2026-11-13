@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Ajusta a largura da página ao tamanho da tela, inclusive em celulares. -->
     <title>Cadastro de Alunos</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- Carrega os estilos da página. -->
     <link rel="stylesheet" href="style.css" />
 </head>
@@ -59,19 +60,27 @@
             </table>
         </section>
         <section class="painel">
-            <div class="painel-cabecalho">
-                <h2>Alunos cadastrados</h2>
-                <form id="form-busca" class="filtros">
-                    <input id="busca-aluno" type="search" placeholder="Buscar por nome" />
-                    <select id="filtro-curso">
-                        <!-- As opções de filtro são carregadas pelo JavaScript. -->
-                        <option value="">Todos os cursos</option>
-                        <!-- O valor vazio indica que nenhum curso está sendo filtrado. -->
-                    </select>
-                    <button type="submit" class="btn btn-secundario">Buscar</button>
-                    <button type="button" id="btn-atualizar" class="btn btn-secundario">Atualizar lista</button>
-                </form>
+            <div class="painel-cabecalho alunos-cabecalho">
+                <div class="alunos-cabecalho-topo">
+                    <h2>Alunos cadastrados</h2>
+                    <div class="alunos-cabecalho-acoes">
+                        <select id="filtro-curso">
+                            <!-- As opções de filtro são carregadas pelo JavaScript. -->
+                            <option value="">Todos os cursos</option>
+                            <!-- O valor vazio indica que nenhum curso está sendo filtrado. -->
+                        </select>
+                        <button type="button" id="btn-atualizar" class="btn btn-secundario">Atualizar lista</button>
+                    </div>
+                </div>
+                <div class="filtros">
+                    <form id="form-busca" class="busca-linha">
+                        <input id="busca-aluno" type="search" placeholder="Pesquisar por nome ou RA" />
+                        <button type="submit" class="btn btn-primario">Pesquisar</button>
+                    </form>
+                    <div id="criterio-pesquisa" class="criterio-pesquisa" hidden></div>
+                </div>
             </div>
+
             <table class="tabela-alunos">
                 <colgroup>
                     <col class="col-aluno-nome" />
@@ -93,40 +102,42 @@
                     </tr>
                 </tbody>
             </table>
-            <div id="sentinela-alunos" class="sentinela-alunos" aria-hidden="true"></div>
-        </section>
+    </div>
+    <p id="alunos-status" class="rolagem-status">Carregando...</p>
+    <div id="sentinela-alunos" aria-hidden="true"></div>
+    </section>
 
-        <div id="modal" class="modal" hidden>
-            <!-- O modal fica oculto até o usuário abrir o formulário. -->
-            <div class="modal-fundo" id="modal-fundo"></div>
-            <!-- Fundo escuro; clicar nele fecha o modal conforme configurado em app.js. -->
-            <div class="modal-caixa" role="dialog" aria-modal="true">
-                <!-- Caixa do diálogo que contém o formulário. -->
-                <!-- role e aria-modal identificam o diálogo para tecnologias assistivas. -->
-                <h2 id="modal-titulo">Novo aluno</h2>
-                <form id="form-aluno">
-                    <!-- Formulário usado para cadastrar ou editar um aluno. -->
-                    <label>
-                        Nome
-                        <input id="nome" type="text" required autocomplete="off" />
-                    </label>
-                    <label>
-                        RA
-                        <input id="ra" type="text" required autocomplete="off" />
-                    </label>
-                    <label>
-                        Curso
-                        <select id="curso" required>
-                            <option value="">Selecione um curso</option>
-                        </select>
-                    </label>
-                    <div class="modal-acoes">
-                        <button type="button" id="btn-cancelar" class="btn btn-secundario">Cancelar</button>
-                        <button type="submit" class="btn btn-primario">Salvar</button>
-                    </div>
-                </form>
-            </div>
+    <div id="modal" class="modal" hidden>
+        <!-- O modal fica oculto até o usuário abrir o formulário. -->
+        <div class="modal-fundo" id="modal-fundo"></div>
+        <!-- Fundo escuro; clicar nele fecha o modal conforme configurado em app.js. -->
+        <div class="modal-caixa" role="dialog" aria-modal="true">
+            <!-- Caixa do diálogo que contém o formulário. -->
+            <!-- role e aria-modal identificam o diálogo para tecnologias assistivas. -->
+            <h2 id="modal-titulo">Novo aluno</h2>
+            <form id="form-aluno">
+                <!-- Formulário usado para cadastrar ou editar um aluno. -->
+                <label>
+                    Nome
+                    <input id="nome" type="text" required autocomplete="off" />
+                </label>
+                <label>
+                    RA
+                    <input id="ra" type="text" required autocomplete="off" />
+                </label>
+                <label>
+                    Curso
+                    <select id="curso" required>
+                        <option value="">Selecione um curso</option>
+                    </select>
+                </label>
+                <div class="modal-acoes">
+                    <button type="button" id="btn-cancelar" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Salvar</button>
+                </div>
+            </form>
         </div>
+    </div>
     </div>
     <script src="app.js"></script>
     <!-- Carrega o JavaScript da interface após os elementos da página. -->

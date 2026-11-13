@@ -53,6 +53,7 @@ async function excluirCurso(id) {
 // colunas que pedimos sempre que lemos alunos (inclui o curso relacionado)
 // guardamos numa constante para não repetir o texto em todas as funções
 const COLUNAS_ALUNO = 'id, nome, ra, curso_id, criado_em, curso:cursos(id, nome)';
+
 // equivalente a: INSERT INTO alunos (nome, ra, curso_id) VALUES (...)
 async function inserirAluno(nome, ra, cursoId) {
   const { data, error } = await supabase
@@ -65,28 +66,31 @@ async function inserirAluno(nome, ra, cursoId) {
   return data;
 }
 // Lista os alunos com seus cursos relacionados e aceita paginação opcional.
-async function listarAlunos(pagina, nome) {
-  return consultarAlunos({ pagina, nome });
+async function listarAlunos(opcoes = {}) {
+  return consultarAlunos(null, opcoes.inicio || 0, opcoes.limite, opcoes.nome);
+}
+async function listarAlunosDoCurso(cursoId, opcoes = {}) {
+  return consultarAlunos(cursoId, opcoes.inicio || 0, opcoes.limite, opcoes.nome);
 }
 
-// Lista os alunos de um curso e aceita paginação e busca por nome.
-async function listarAlunosDoCurso(cursoId, pagina, nome) {
-  return consultarAlunos({ cursoId, pagina, nome });
-}
 
-async function consultarAlunos({ cursoId, pagina, nome } = {}) {
-  let consulta = supabase.from('alunos')
-    .select(COLUNAS_ALUNO, pagina ? { count: 'exact' } : undefined);
+async function consultarAlunos(cursoId, inicio, limite, nome) {
+  let consulta = supabase
+    .from('alunos')
+    .select(COLUNAS_ALUNO, limite ? { count: 'exact' } : undefined);
   if (cursoId) consulta = consulta.eq('curso_id', cursoId);
-  if (nome) consulta = consulta.ilike('nome', `%${nome}%`);
+  if (nome) {
+    const nomeEscapado = nome.replace(/[\\%_]/g, '\\$&');
+    consulta = consulta.ilike('nome', `%${nomeEscapado}%`);
+  }
   consulta = consulta.order(cursoId ? 'nome' : 'id', { ascending: true });
-  if (pagina) consulta = consulta.range(pagina.inicio, pagina.inicio + pagina.limite - 1);
-
+  if (limite) consulta = consulta.range(inicio, inicio + limite - 1);
   const { data, error, count } = await consulta;
   if (error) throw error;
-  if (pagina) return { alunos: data || [], total: count ?? 0 };
-  return data || [];
+  if (!limite) return data || [];
+  return { alunos: data || [], total: count ?? 0 };
 }
+
 
 // equivalente a: SELECT ... FROM alunos WHERE ra = '...'
 async function buscarPorRa(ra) {

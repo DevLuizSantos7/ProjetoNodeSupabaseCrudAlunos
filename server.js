@@ -17,6 +17,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'frontend')));
+app.get('/favicon.ico', (req, res) => res.redirect('/favicon.svg'));
 // Middleware global: interpreta corpos JSON e disponibiliza os dados em req.body.
 // ===== GET /alunos → lista todos =====
 // primeiro argumento: o caminho da rota
@@ -26,15 +27,17 @@ app.get('/alunos', async (req, res) => {
   try {
     const pagina = lerPagina(req.query);
     if (pagina && pagina.erro) return res.status(400).json({ erro: pagina.erro });
-    const nome = typeof req.query.nome === 'string' ? req.query.nome.trim() : '';
-    const dados = await listarAlunos(pagina || undefined, nome);
+    const nome = lerNome(req.query);
+    if (nome.erro) return res.status(400).json({ erro: nome.erro });
+    const dados = await listarAlunos({ ...(pagina || {}), nome: nome.valor });
     res.json(pagina
       ? { ...dados, inicio: pagina.inicio, limite: pagina.limite }
       : dados);
   } catch (e) {
-    res.status(500).json({ erro: e.message });   // 500 = algo quebrou no servidor
+    res.status(500).json({ erro: e.message });
   }
 });
+
 // ===== GET /alunos/2026001 → busca só um =====
 // ":ra" é um PARÂMETRO DE ROTA — qualquer texto nessa posição
 // da URL vira req.params.ra dentro da função
@@ -141,28 +144,37 @@ app.delete('/cursos/:id', async (req, res) => {
 app.get('/cursos/:id/alunos', async (req, res) => {
   try {
     const pagina = lerPagina(req.query);
-    if (pagina?.erro) return res.status(400).json({ erro: pagina.erro });
-    const nome = typeof req.query.nome === 'string' ? req.query.nome.trim() : '';
-    const dados = await listarAlunosDoCurso(req.params.id, pagina || undefined, nome);
+    if (pagina && pagina.erro) return res.status(400).json({ erro: pagina.erro });
+    const nome = lerNome(req.query);
+    if (nome.erro) return res.status(400).json({ erro: nome.erro });
+    const dados = await listarAlunosDoCurso(req.params.id, {
+      ...(pagina || {}),
+      nome: nome.valor,
+    });
     res.json(pagina ? { ...dados, inicio: pagina.inicio, limite: pagina.limite } : dados);
   } catch (e) {
     res.status(500).json({ erro: e.message });
   }
 });
 
+function lerNome(query) {
+  if (query.nome === undefined) return { valor: '' };
+  if (typeof query.nome !== 'string') {
+    return { erro: 'O filtro nome deve ser um texto' };
+  }
+  return { valor: query.nome.trim() };
+}
+
 function lerPagina(query) {
   if (query.limite === undefined && query.inicio === undefined) return null;
-
   const limite = Number(query.limite);
   const inicio = query.inicio === undefined ? 0 : Number(query.inicio);
-
   if (!Number.isInteger(limite) || limite < 1 || limite > 100) {
     return { erro: 'Informe limite entre 1 e 100' };
   }
   if (!Number.isInteger(inicio) || inicio < 0) {
     return { erro: 'inicio inválido' };
   }
-
   return { inicio, limite };
 }
 

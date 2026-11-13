@@ -13,13 +13,17 @@ const formCurso = document.getElementById('form-curso');         // novo
 const inputNovoCurso = document.getElementById('novo-curso');    // novo
 const formBusca = document.getElementById('form-busca');
 const buscaAluno = document.getElementById('busca-aluno');
+const criterioPesquisa = document.getElementById('criterio-pesquisa');
 const sentinelaAlunos = document.getElementById('sentinela-alunos');
 
-const ALUNOS_POR_PAGINA = 4;
+const ALUNOS_POR_PAGINA = 5;
 let alunosInicio = 0;
 let alunosTotal = 0;
+let alunosTemMais = false;
 let alunosCarregando = false;
+let alunosErro = false;
 let alunosPedido = 0;
+const statusAlunos = document.getElementById('alunos-status');
 
 // variáveis de estado: memórias do que estamos fazendo agora
 let modo = 'criar';       // 'criar' ou 'editar'
@@ -168,13 +172,109 @@ function pedirMaisSeVisivel() {
   }
 }
 
-async function listarAlunos(acrescentar = false) {
-  if (acrescentar && (alunosCarregando || alunosInicio >= alunosTotal)) return;
+function atualizarStatusAlunos() {
+  if (alunosCarregando) {
+    statusAlunos.textContent = alunosInicio
+      ? `Carregando mais alunos... (${alunosInicio} de ${alunosTotal})`
+      : 'Carregando...';
+    return;
+  }
+  if (alunosErro) {
+    statusAlunos.textContent = 'Não foi possível carregar os alunos.';
+    return;
+  }
+  if (alunosTemMais) {
+    statusAlunos.textContent =
+      `Mostrando ${alunosInicio} de ${alunosTotal} alunos. Role para carregar mais.`;
+    return;
+  }
+  statusAlunos.textContent =
+    `${alunosInicio} ${alunosInicio === 1 ? 'aluno carregado' : 'alunos carregados'}.`;
+}
 
+function atualizarCriterioPesquisa() {
+  criterioPesquisa.innerHTML = '';
+  const criterio = buscaAluno.value.trim();
+  if (!criterio) { criterioPesquisa.hidden = true; return; }
+
+  const rotulo = document.createElement('span');
+  rotulo.className = 'criterio-rotulo';
+  rotulo.textContent = 'Critério de pesquisa:';
+
+  const nuvem = document.createElement('span');
+  nuvem.className = 'nuvem-filtro';
+
+  const texto = document.createElement('span');
+  texto.className = 'nuvem-filtro-texto';
+  texto.textContent = criterio;
+
+  const btnLimpar = document.createElement('button');
+  btnLimpar.type = 'button';
+  btnLimpar.className = 'nuvem-filtro-limpar';
+  btnLimpar.textContent = '×';
+  btnLimpar.setAttribute('aria-label', 'Limpar pesquisa');
+  btnLimpar.addEventListener('click', limparBusca);
+
+  nuvem.appendChild(texto);
+  nuvem.appendChild(btnLimpar);
+  criterioPesquisa.appendChild(rotulo);
+  criterioPesquisa.appendChild(nuvem);
+  criterioPesquisa.hidden = false;
+}
+
+function limparBusca() {
+  buscaAluno.value = '';
+  atualizarCriterioPesquisa(); // some a nuvem
+  listarAlunos(false); // lista de novo, sem ?busca=
+}
+
+function linhaAluno(aluno) {
+  const tr = document.createElement('tr');
+  const tdNome = document.createElement('td');
+  tdNome.textContent = aluno.nome || '';
+  const tdRa = document.createElement('td');
+  tdRa.textContent = aluno.ra || '';
+  const tdCurso = document.createElement('td');
+  tdCurso.textContent = aluno.curso ? aluno.curso.nome : '—';
+  const tdAcoes = document.createElement('td');
+  const acoes = document.createElement('div');
+  acoes.className = 'tabela-acoes';
+
+  const btnEditar = document.createElement('button');
+  btnEditar.type = 'button';
+  btnEditar.className = 'btn btn-secundario btn-pequeno';
+  btnEditar.textContent = 'Editar';
+  btnEditar.onclick = () => abrirModalEditar(aluno);
+
+  const btnExcluir = document.createElement('button');
+  btnExcluir.type = 'button';
+  btnExcluir.className = 'btn btn-perigo btn-pequeno';
+  btnExcluir.textContent = 'Excluir';
+  btnExcluir.onclick = () => excluirAluno(aluno.ra, aluno.nome);
+
+  acoes.append(btnEditar, btnExcluir);
+  tdAcoes.appendChild(acoes);
+  tr.append(tdNome, tdRa, tdCurso, tdAcoes);
+  return tr;
+}
+
+async function listarAlunos(acrescentar = false) {
+  if (acrescentar && (alunosCarregando || !alunosTemMais)) return;
   const pedido = acrescentar ? alunosPedido : ++alunosPedido;
   const inicio = acrescentar ? alunosInicio : 0;
-  const cursoId = filtroCurso.value;   // '' = "Todos os cursos"
-  const url = cursoId ? `/cursos/${cursoId}/alunos` : '/alunos';
+  const cursoId = filtroCurso.value;
+  const base = cursoId ? `/cursos/${cursoId}/alunos` : '/alunos';
+  alunosCarregando = true;
+  alunosErro = false;
+  if (!acrescentar) {
+    alunosInicio = 0;
+    alunosTotal = 0;
+    alunosTemMais = false;
+    tabela.innerHTML =
+      '<tr><td colspan="4" class="vazio">Carregando...</td></tr>';
+  }
+  atualizarStatusAlunos();
+
   const parametros = new URLSearchParams({
     inicio: String(inicio),
     limite: String(ALUNOS_POR_PAGINA),
@@ -182,58 +282,40 @@ async function listarAlunos(acrescentar = false) {
   const nome = buscaAluno.value.trim();
   if (nome) parametros.set('nome', nome);
 
-  alunosCarregando = true;
   try {
-    const resposta = await fetch(`${url}?${parametros}`);
+    const resposta = await fetch(`${base}?${parametros}`);
     const dados = await resposta.json();
     if (pedido !== alunosPedido) return;
-    if (!resposta.ok) throw new Error(dados.erro || 'Erro ao buscar alunos');
+    if (!resposta.ok) throw new Error(dados.erro || 'Erro ao listar alunos');
 
+    msg.hidden = true;
+    alunosErro = false;
     const alunos = dados.alunos || [];
     alunosTotal = dados.total || 0;
     if (!acrescentar) tabela.innerHTML = '';
-
-    if (!alunos.length && !acrescentar) {
-      tabela.innerHTML = '<tr><td colspan="4" class="vazio">Nenhum aluno encontrado.</td></tr>';
-    } else {
-      for (const aluno of alunos) {
-        const tr = document.createElement('tr');
-        const tdNome = document.createElement('td');
-        tdNome.textContent = aluno.nome;
-        const tdRa = document.createElement('td');
-        tdRa.textContent = aluno.ra;
-        const tdCurso = document.createElement('td');
-        tdCurso.textContent = aluno.curso ? aluno.curso.nome : '—';
-        const tdAcoes = document.createElement('td');
-        const acoes = document.createElement('div');
-        acoes.className = 'tabela-acoes';
-        const btnEditar = document.createElement('button');
-        btnEditar.className = 'btn btn-secundario btn-pequeno';
-        btnEditar.textContent = 'Editar';
-        btnEditar.onclick = () => abrirModalEditar(aluno);
-        const btnExcluir = document.createElement('button');
-        btnExcluir.className = 'btn btn-perigo btn-pequeno';
-        btnExcluir.textContent = 'Excluir';
-        btnExcluir.onclick = () => excluirAluno(aluno.ra, aluno.nome);
-        acoes.append(btnEditar, btnExcluir);
-        tdAcoes.appendChild(acoes);
-        tr.append(tdNome, tdRa, tdCurso, tdAcoes);
-        tabela.appendChild(tr);
-      }
+    if (!alunosTotal) {
+      tabela.innerHTML =
+        '<tr><td colspan="4" class="vazio">Nenhum aluno encontrado.</td></tr>';
+      alunosInicio = 0;
+      alunosTemMais = false;
+      return;
     }
+    for (const aluno of alunos) tabela.appendChild(linhaAluno(aluno));
     alunosInicio = inicio + alunos.length;
-    alunosInicio = inicio + alunos.length;
-    msg.hidden = true;
+    alunosTemMais = alunosInicio < alunosTotal;
   } catch (erro) {
     if (pedido !== alunosPedido) return;
-    mostrarMsg(erro.message, 'erro');
+    alunosErro = true;
+    mostrarMsg(erro.message || 'Não foi possível carregar os alunos.', 'erro');
     if (!acrescentar) {
-      tabela.innerHTML = '<tr><td colspan="4" class="vazio">Não foi possível carregar os alunos.</td></tr>';
+      tabela.innerHTML =
+        '<tr><td colspan="4" class="vazio">Não foi possível carregar os alunos.</td></tr>';
     }
   } finally {
     if (pedido === alunosPedido) {
       alunosCarregando = false;
-      requestAnimationFrame(pedirMaisSeVisivel);
+      atualizarStatusAlunos();
+      pedirMaisSeVisivel();
     }
   }
 }
@@ -302,6 +384,7 @@ form.addEventListener('submit', salvarAluno);
 formCurso.addEventListener('submit', adicionarCurso);   // novo
 formBusca.addEventListener('submit', (evento) => {
   evento.preventDefault();
+  atualizarCriterioPesquisa();
   listarAlunos();
 });
 filtroCurso.addEventListener('change', () => listarAlunos());
