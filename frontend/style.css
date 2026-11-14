@@ -284,8 +284,7 @@ input:disabled {
   /* Separa os painéis de cursos e alunos. */
 }
 
-.form-linha,
-.filtros {
+.form-linha {
   display: flex;
   /* Alinha os campos e controles em uma linha. */
   align-items: center;
@@ -294,10 +293,6 @@ input:disabled {
 
 .form-linha input {
   width: 220px;
-}
-
-.filtros select {
-  width: auto;
 }
 
 input,
@@ -327,42 +322,37 @@ select {
   width: auto;
 }
 
-.filtros {
+.filtros-ativos {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-wrap: wrap;
+  align-items: center;
   min-width: 0;
   gap: 0.65rem;
+  margin-top: 0.65rem;
 }
 
-.criterio-pesquisa {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.filtros-ativos[hidden] {
+  display: none;
+}
+
+.filtros-ativos-rotulo {
   color: var(--muted);
   font-size: 0.9rem;
 }
 
-.criterio-pesquisa[hidden] {
-  display: none;
-}
-
 .busca-linha {
   display: flex;
-  flex: 1 0 100%;
+  flex: 1 1 100%;
+  align-items: center;
   min-width: 0;
   gap: 0.65rem;
+  margin-top: 0.65rem;
 }
 
-.filtros input[type="search"] {
+.busca-linha input[type="search"] {
   flex: 1 1 12rem;
   min-width: 0;
   width: auto;
-}
-
-.filtros select {
-  flex: 1 1 10rem;
-  min-width: 0;
 }
 
 .modal-acoes {
@@ -393,17 +383,50 @@ select {
   display: inline-flex;
   align-items: center;
   padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+  border: 1px solid #b7deca;
   border-radius: 999px;
-  /* cantos bem redondos = “nuvem” */
   background: #e7f6ee;
   color: var(--primary);
+  font-weight: 600;
+}
+
+.nuvem-filtro-texto {
+  overflow-wrap: anywhere;
 }
 
 .nuvem-filtro-limpar {
+  display: grid;
   width: 1.45rem;
   height: 1.45rem;
+  margin-left: 0.25rem;
+  padding: 0;
+  border: 0;
   border-radius: 999px;
-  /* botão × dentro da nuvem */
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  place-items: center;
+  font: inherit;
+  line-height: 1;
+}
+
+.th-ordem {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.th-ordem.ativa {
+  color: var(--primary);
+}
+
+.seta-ordem {
+  white-space: nowrap;
 }
 
 /* Estilo do campo de RA quando está desabilitado durante a edição. */
@@ -427,7 +450,7 @@ select {
   }
 
   .form-linha,
-  .filtros {
+  .busca-linha {
     width: 100%;
   }
 

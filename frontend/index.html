@@ -72,13 +72,11 @@
                         <button type="button" id="btn-atualizar" class="btn btn-secundario">Atualizar lista</button>
                     </div>
                 </div>
-                <div class="filtros">
-                    <form id="form-busca" class="busca-linha">
-                        <input id="busca-aluno" type="search" placeholder="Pesquisar por nome ou RA" />
-                        <button type="submit" class="btn btn-primario">Pesquisar</button>
-                    </form>
-                    <div id="criterio-pesquisa" class="criterio-pesquisa" hidden></div>
-                </div>
+                <form id="form-busca" class="busca-linha">
+                    <input id="busca-aluno" type="search" placeholder="Pesquisar por nome ou RA" />
+                    <button type="submit" class="btn btn-primario">Pesquisar</button>
+                </form>
+                <div id="filtros-ativos" class="filtros-ativos" hidden></div>
             </div>
 
             <table class="tabela-alunos">
@@ -90,9 +88,21 @@
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>Nome</th>
-                        <th>RA</th>
-                        <th>Curso</th>
+                        <th aria-sort="none">
+                            <button type="button" class="th-ordem" data-ordem="nome" title="Ordenar por nome">
+                                Nome <span class="seta-ordem" aria-hidden="true"></span>
+                            </button>
+                        </th>
+                        <th aria-sort="none">
+                            <button type="button" class="th-ordem" data-ordem="ra" title="Ordenar por RA">
+                                RA <span class="seta-ordem" aria-hidden="true"></span>
+                            </button>
+                        </th>
+                        <th aria-sort="none">
+                            <button type="button" class="th-ordem" data-ordem="curso" title="Ordenar por curso">
+                                Curso <span class="seta-ordem" aria-hidden="true"></span>
+                            </button>
+                        </th>
                         <th class="acoes">Ações</th>
                     </tr>
                 </thead>
@@ -102,10 +112,9 @@
                     </tr>
                 </tbody>
             </table>
-    </div>
-    <p id="alunos-status" class="rolagem-status">Carregando...</p>
-    <div id="sentinela-alunos" aria-hidden="true"></div>
-    </section>
+            <p id="alunos-status" class="rolagem-status">Carregando...</p>
+            <div id="sentinela-alunos" aria-hidden="true"></div>
+        </section>
 
     <div id="modal" class="modal" hidden>
         <!-- O modal fica oculto até o usuário abrir o formulário. -->

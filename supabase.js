@@ -67,23 +67,42 @@ async function inserirAluno(nome, ra, cursoId) {
 }
 // Lista os alunos com seus cursos relacionados e aceita paginação opcional.
 async function listarAlunos(opcoes = {}) {
-  return consultarAlunos(null, opcoes.inicio || 0, opcoes.limite, opcoes.nome);
+  return consultarAlunos(null, opcoes);
 }
 async function listarAlunosDoCurso(cursoId, opcoes = {}) {
-  return consultarAlunos(cursoId, opcoes.inicio || 0, opcoes.limite, opcoes.nome);
+  return consultarAlunos(cursoId, opcoes);
 }
 
 
-async function consultarAlunos(cursoId, inicio, limite, nome) {
+async function consultarAlunos(cursoId, opcoes) {
+  const {
+    inicio = 0,
+    limite,
+    ordem = '',
+    direcao = 'asc',
+  } = opcoes;
+  const busca = opcoes.busca ?? opcoes.nome ?? '';
   let consulta = supabase
     .from('alunos')
     .select(COLUNAS_ALUNO, limite ? { count: 'exact' } : undefined);
   if (cursoId) consulta = consulta.eq('curso_id', cursoId);
-  if (nome) {
-    const nomeEscapado = nome.replace(/[\\%_]/g, '\\$&');
-    consulta = consulta.ilike('nome', `%${nomeEscapado}%`);
+  if (busca) {
+    const termoEscapado = busca
+      .replace(/\\/g, '\\\\')
+      .replace(/[%_]/g, '\\$&')
+      .replace(/"/g, '\\"');
+    const padrao = `"%${termoEscapado}%"`;
+    consulta = consulta.or(`nome.ilike.${padrao},ra.ilike.${padrao}`);
   }
-  consulta = consulta.order(cursoId ? 'nome' : 'id', { ascending: true });
+  const ascendente = direcao !== 'desc';
+  if (ordem === 'curso') {
+    consulta = consulta.order('nome', { ascending: ascendente, referencedTable: 'curso' });
+  } else if (ordem === 'nome' || ordem === 'ra') {
+    consulta = consulta.order(ordem, { ascending: ascendente });
+  } else if (cursoId) {
+    consulta = consulta.order('nome', { ascending: true });
+  }
+  consulta = consulta.order('id', { ascending: true });
   if (limite) consulta = consulta.range(inicio, inicio + limite - 1);
   const { data, error, count } = await consulta;
   if (error) throw error;

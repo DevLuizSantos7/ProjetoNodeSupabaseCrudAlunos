@@ -25,13 +25,11 @@ app.get('/favicon.ico', (req, res) => res.redirect('/favicon.svg'));
 
 app.get('/alunos', async (req, res) => {
   try {
-    const pagina = lerPagina(req.query);
-    if (pagina && pagina.erro) return res.status(400).json({ erro: pagina.erro });
-    const nome = lerNome(req.query);
-    if (nome.erro) return res.status(400).json({ erro: nome.erro });
-    const dados = await listarAlunos({ ...(pagina || {}), nome: nome.valor });
-    res.json(pagina
-      ? { ...dados, inicio: pagina.inicio, limite: pagina.limite }
+    const parametros = opcoesDaLista(req.query);
+    if (parametros.erro) return res.status(400).json({ erro: parametros.erro });
+    const dados = await listarAlunos(parametros.opcoes);
+    res.json(parametros.pagina
+      ? { ...dados, inicio: parametros.pagina.inicio, limite: parametros.pagina.limite }
       : dados);
   } catch (e) {
     res.status(500).json({ erro: e.message });
@@ -143,26 +141,60 @@ app.delete('/cursos/:id', async (req, res) => {
 // ===== GET /cursos/3/alunos → os alunos de UM curso =====
 app.get('/cursos/:id/alunos', async (req, res) => {
   try {
-    const pagina = lerPagina(req.query);
-    if (pagina && pagina.erro) return res.status(400).json({ erro: pagina.erro });
-    const nome = lerNome(req.query);
-    if (nome.erro) return res.status(400).json({ erro: nome.erro });
-    const dados = await listarAlunosDoCurso(req.params.id, {
-      ...(pagina || {}),
-      nome: nome.valor,
-    });
-    res.json(pagina ? { ...dados, inicio: pagina.inicio, limite: pagina.limite } : dados);
+    const parametros = opcoesDaLista(req.query);
+    if (parametros.erro) return res.status(400).json({ erro: parametros.erro });
+    const dados = await listarAlunosDoCurso(req.params.id, parametros.opcoes);
+    res.json(parametros.pagina
+      ? { ...dados, inicio: parametros.pagina.inicio, limite: parametros.pagina.limite }
+      : dados);
   } catch (e) {
     res.status(500).json({ erro: e.message });
   }
 });
 
-function lerNome(query) {
-  if (query.nome === undefined) return { valor: '' };
-  if (typeof query.nome !== 'string') {
-    return { erro: 'O filtro nome deve ser um texto' };
+function opcoesDaLista(query) {
+  const pagina = lerPagina(query);
+  if (pagina && pagina.erro) return { erro: pagina.erro };
+
+  const busca = lerBusca(query);
+  if (busca.erro) return { erro: busca.erro };
+
+  const ordenacao = lerOrdenacao(query);
+  if (ordenacao.erro) return { erro: ordenacao.erro };
+
+  return {
+    pagina,
+    opcoes: {
+      ...(pagina || {}),
+      busca: busca.valor,
+      ...(ordenacao.valor || {}),
+    },
+  };
+}
+
+function lerBusca(query) {
+  const termo = query.busca === undefined ? query.nome : query.busca;
+  if (termo === undefined) return { valor: '' };
+  if (typeof termo !== 'string') {
+    return { erro: 'O filtro busca deve ser um texto' };
   }
-  return { valor: query.nome.trim() };
+  return { valor: termo.trim() };
+}
+
+function lerOrdenacao(query) {
+  if (query.ordem === undefined) return { valor: null };
+  const permitidas = { nome: 'nome', ra: 'ra', curso: 'curso' };
+  if (typeof query.ordem !== 'string'
+    || !Object.prototype.hasOwnProperty.call(permitidas, query.ordem)) {
+    return { erro: 'Ordenação inválida' };
+  }
+  const ordem = permitidas[query.ordem];
+
+  const direcao = query.direcao === undefined ? 'asc' : query.direcao;
+  if (typeof direcao !== 'string' || !['asc', 'desc'].includes(direcao)) {
+    return { erro: 'Direção de ordenação inválida' };
+  }
+  return { valor: { ordem, direcao } };
 }
 
 function lerPagina(query) {

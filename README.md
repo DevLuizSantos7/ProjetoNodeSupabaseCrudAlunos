@@ -9,6 +9,10 @@ Aplicação didática em Node.js para estudar uma API REST com Express e persist
 - HTML, CSS e JavaScript no frontend
 - `dotenv` para carregar configurações locais
 
+## Lista dinâmica de alunos
+
+A tabela carrega cinco alunos por vez conforme a rolagem. É possível filtrar por curso, pesquisar por nome ou RA e ordenar por nome, RA ou curso. Os critérios ativos aparecem em nuvens que podem ser limpas individualmente.
+
 ### Tabela inicial de alunos
 
 ![Definição inicial da tabela alunos](imgs_supabase/table_alunos.png)

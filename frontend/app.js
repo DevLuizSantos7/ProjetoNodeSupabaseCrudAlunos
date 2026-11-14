@@ -13,7 +13,7 @@ const formCurso = document.getElementById('form-curso');         // novo
 const inputNovoCurso = document.getElementById('novo-curso');    // novo
 const formBusca = document.getElementById('form-busca');
 const buscaAluno = document.getElementById('busca-aluno');
-const criterioPesquisa = document.getElementById('criterio-pesquisa');
+const filtrosAtivos = document.getElementById('filtros-ativos');
 const sentinelaAlunos = document.getElementById('sentinela-alunos');
 
 const ALUNOS_POR_PAGINA = 5;
@@ -23,6 +23,9 @@ let alunosTemMais = false;
 let alunosCarregando = false;
 let alunosErro = false;
 let alunosPedido = 0;
+let alunosBusca = '';
+let alunosOrdem = '';
+let alunosDirecao = 'asc';
 const statusAlunos = document.getElementById('alunos-status');
 
 // variáveis de estado: memórias do que estamos fazendo agora
@@ -64,6 +67,7 @@ function montarTabelaCursos(cursos) {
     btnVer.textContent = 'Ver alunos';
     btnVer.onclick = () => {
       filtroCurso.value = curso.id;   // escolhe o curso no filtro
+      atualizarFiltrosAtivos();
       listarAlunos();                 // e lista só os alunos dele
     };
     const btnExcluir = document.createElement('button');
@@ -99,6 +103,7 @@ function preencherSelects(cursos) {
   // se o curso escolhido foi excluído, volta para a primeira opção
   if (filtroCurso.selectedIndex === -1) filtroCurso.value = '';
   if (selectCurso.selectedIndex === -1) selectCurso.value = '';
+  atualizarFiltrosAtivos();
 }
 
 async function adicionarCurso(evento) {
@@ -185,47 +190,104 @@ function atualizarStatusAlunos() {
   }
   if (alunosTemMais) {
     statusAlunos.textContent =
-      `Mostrando ${alunosInicio} de ${alunosTotal} alunos. Role para carregar mais.`;
+      `Mostrando ${alunosInicio} de ${alunosTotal}. Role para carregar mais.`;
     return;
   }
-  statusAlunos.textContent =
-    `${alunosInicio} ${alunosInicio === 1 ? 'aluno carregado' : 'alunos carregados'}.`;
+  statusAlunos.textContent = alunosTotal
+    ? `Mostrando ${alunosInicio} de ${alunosTotal}. Fim da lista.`
+    : 'Nenhum aluno encontrado.';
 }
 
-function atualizarCriterioPesquisa() {
-  criterioPesquisa.innerHTML = '';
-  const criterio = buscaAluno.value.trim();
-  if (!criterio) { criterioPesquisa.hidden = true; return; }
-
-  const rotulo = document.createElement('span');
-  rotulo.className = 'criterio-rotulo';
-  rotulo.textContent = 'Critério de pesquisa:';
-
+function criarNuvemFiltro(texto, aoLimpar, rotulo) {
   const nuvem = document.createElement('span');
   nuvem.className = 'nuvem-filtro';
 
-  const texto = document.createElement('span');
-  texto.className = 'nuvem-filtro-texto';
-  texto.textContent = criterio;
+  const conteudo = document.createElement('span');
+  conteudo.className = 'nuvem-filtro-texto';
+  conteudo.textContent = texto;
 
   const btnLimpar = document.createElement('button');
   btnLimpar.type = 'button';
   btnLimpar.className = 'nuvem-filtro-limpar';
   btnLimpar.textContent = '×';
-  btnLimpar.setAttribute('aria-label', 'Limpar pesquisa');
-  btnLimpar.addEventListener('click', limparBusca);
-
-  nuvem.appendChild(texto);
+  btnLimpar.setAttribute('aria-label', rotulo);
+  btnLimpar.addEventListener('click', aoLimpar);
+  nuvem.appendChild(conteudo);
   nuvem.appendChild(btnLimpar);
-  criterioPesquisa.appendChild(rotulo);
-  criterioPesquisa.appendChild(nuvem);
-  criterioPesquisa.hidden = false;
+  return nuvem;
+}
+
+function atualizarFiltrosAtivos() {
+  filtrosAtivos.innerHTML = '';
+  const cursoAtivo = filtroCurso.value;
+  const temFiltro = cursoAtivo || alunosBusca;
+  if (!temFiltro) {
+    filtrosAtivos.hidden = true;
+    return;
+  }
+
+  const rotulo = document.createElement('span');
+  rotulo.className = 'filtros-ativos-rotulo';
+  rotulo.textContent = 'Critério de pesquisa:';
+  filtrosAtivos.appendChild(rotulo);
+
+  if (cursoAtivo) {
+    const nomeCurso = filtroCurso.selectedOptions[0].textContent.trim();
+    filtrosAtivos.appendChild(
+      criarNuvemFiltro(`Curso: ${nomeCurso}`, limparFiltroCurso, 'Limpar filtro de curso')
+    );
+  }
+  if (alunosBusca) {
+    filtrosAtivos.appendChild(
+      criarNuvemFiltro(`Pesquisa: ${alunosBusca}`, limparBusca, 'Limpar pesquisa')
+    );
+  }
+
+  filtrosAtivos.hidden = false;
 }
 
 function limparBusca() {
   buscaAluno.value = '';
-  atualizarCriterioPesquisa(); // some a nuvem
-  listarAlunos(false); // lista de novo, sem ?busca=
+  alunosBusca = '';
+  atualizarFiltrosAtivos();
+  listarAlunos();
+}
+
+function limparFiltroCurso() {
+  filtroCurso.value = '';
+  atualizarFiltrosAtivos();
+  listarAlunos();
+}
+
+function pesquisarAlunos(evento) {
+  evento.preventDefault();
+  alunosBusca = buscaAluno.value.trim();
+  atualizarFiltrosAtivos();
+  listarAlunos();
+}
+
+function ordenarPorColuna(coluna) {
+  if (alunosOrdem === coluna) {
+    alunosDirecao = alunosDirecao === 'asc' ? 'desc' : 'asc';
+  } else {
+    alunosOrdem = coluna;
+    alunosDirecao = 'asc';
+  }
+  atualizarCabecalhosOrdem();
+  listarAlunos();
+}
+
+function atualizarCabecalhosOrdem() {
+  for (const botao of document.querySelectorAll('.th-ordem')) {
+    const ativa = botao.dataset.ordem === alunosOrdem;
+    const seta = botao.querySelector('.seta-ordem');
+    botao.classList.toggle('ativa', ativa);
+    seta.textContent = ativa ? (alunosDirecao === 'asc' ? ' ↑' : ' ↓') : '';
+    botao.closest('th').setAttribute(
+      'aria-sort',
+      ativa ? (alunosDirecao === 'asc' ? 'ascending' : 'descending') : 'none'
+    );
+  }
 }
 
 function linhaAluno(aluno) {
@@ -279,8 +341,11 @@ async function listarAlunos(acrescentar = false) {
     inicio: String(inicio),
     limite: String(ALUNOS_POR_PAGINA),
   });
-  const nome = buscaAluno.value.trim();
-  if (nome) parametros.set('nome', nome);
+  if (alunosBusca) parametros.set('busca', alunosBusca);
+  if (alunosOrdem) {
+    parametros.set('ordem', alunosOrdem);
+    parametros.set('direcao', alunosDirecao);
+  }
 
   try {
     const resposta = await fetch(`${base}?${parametros}`);
@@ -382,12 +447,15 @@ document.getElementById('btn-cancelar').addEventListener('click', fecharModal);
 document.getElementById('modal-fundo').addEventListener('click', fecharModal);
 form.addEventListener('submit', salvarAluno);
 formCurso.addEventListener('submit', adicionarCurso);   // novo
-formBusca.addEventListener('submit', (evento) => {
-  evento.preventDefault();
-  atualizarCriterioPesquisa();
+formBusca.addEventListener('submit', pesquisarAlunos);
+filtroCurso.addEventListener('change', () => {
+  atualizarFiltrosAtivos();
   listarAlunos();
 });
-filtroCurso.addEventListener('change', () => listarAlunos());
+for (const botao of document.querySelectorAll('.th-ordem')) {
+  botao.addEventListener('click', () => ordenarPorColuna(botao.dataset.ordem));
+}
 window.addEventListener('scroll', pedirMaisSeVisivel, { passive: true });
 window.addEventListener('resize', pedirMaisSeVisivel);
+atualizarCabecalhosOrdem();
 atualizarTudo();   // roda 1 vez ao abrir a página
